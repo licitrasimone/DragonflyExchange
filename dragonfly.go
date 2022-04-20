@@ -136,8 +136,7 @@ func convert_kdf(kdf []byte) int {
 }
 
 /*
-Nel Commit Exchange, entrambe le parti si impegnano per la creazione di in una singola
-chiave.
+Nel Commit Exchange, entrambe le parti si impegnano per la creazione di in una singola chiave.
 I Device generano un numero chiamato scalare e un numero chiamato elemento e
 li scambiano l'uno con l'altro per generare un segreto comune/condiviso.
 Per fare un brute force, un utente malintenzionato deve capire quante volte abbiamo "saltato"
@@ -170,21 +169,11 @@ recalc:
 }
 
 /*
-ss = F(scalare-op(private,
-		element-op(element, scalare-op(scalar, PE))))
-
-APi: K = privato(APi) * (scal(APj) * P(x, y) + nuovo_punto(APj))
-       = privato(APi) * privato(APj) * P(x, y)
-
-Un elemento segreto condiviso viene calcolato utilizzando il proprio rand e
-i numeri elemento e scalare dell'altro Device:
-
-	Alice: K = rand A • (scal B • PW + elemB )
-    Bob: K = rand B • (scala A • PW + elemA )
-
-Poiché scal(APx) • P(x, y) è un altro punto, il punto scalare moltiplicato
-di es. scal(AP1) • P(x, y) viene aggiunto a new_Point(AP2) e successivamente
-moltiplicato per privato(AP1).
+Funzione che calcola un token a partire da dati ben noti come scalar element e la chiave privata.
+Il token è una chiave sha256 generata a partire dalla chiave privata generata attraverso operazioni di
+moltiplicazione e somma sulle curve ellittiche che ci generano un punto valido, scalar e element dei due device che 
+instaurano la connessione e il mac address del dispositivo.
+Questo token verrà poi scambiato tra i device per il calcolo effettivo di una chiave condivisa.
 */
 func (d *Device) Shared_secret(other_scalar int, other_element Point, other_mac string) []byte {
 
@@ -218,8 +207,15 @@ func (d *Device) Shared_secret(other_scalar int, other_element Point, other_mac 
 /*
 Nello scambio di conferma, entrambe le parti confermano di aver derivato il
 stesso segreto, e quindi sono in possesso della stessa password.
-Pairwise Master Key (PMK)
-compute PMK = H(k | scal(AP1) + scal(AP2) mod q)
+I due peer si scambiano queste conferme e verificano la correttezza della conferma dell'altro peer che ricevono. Se la 
+conferma dell'altro peer è valida, l'autenticazione ha esito positivo; se la 
+conferma dell'altro peer non è valida, l'autenticazione non riesce. 
+Se l'autenticazione fallisce, tutto lo stato effimero creato come parte della
+particolare esecuzione dello scambio Dragonfly DEVE essere irrimediabilmente distrutto. 
+Se l'autenticazione non fallisce, mk può essere esportato come
+chiave autenticata e segreta che può essere utilizzata da un altro protocollo, ad esempio IPsec, per proteggere altri dati
+
+Pairwise Master Key (PMK) dove PMK = H(k | scal(AP1) + scal(AP2) mod q)
 */
 func (d *Device) Confirm_exchange(token_rcv []byte) bool {
 
