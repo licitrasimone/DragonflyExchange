@@ -136,11 +136,11 @@ func convert_kdf(kdf []byte) int {
 }
 
 /*
-Nel Commit Exchange, entrambe le parti si impegnano per la creazione di in una singola chiave.
-I Device generano un numero chiamato scalare e un numero chiamato elemento e
-li scambiano l'uno con l'altro per generare un segreto comune/condiviso.
-Per fare un brute force, un utente malintenzionato deve capire quante volte abbiamo "saltato"
-sulla curva ellittica. Il numero di salti è il segreto d, la chiave privata.
+In the Commit Exchange, both parties commit to the creation of in a single key.
+Devices generate a number called a scalar and a number called an e element
+they exchange them with each other to generate a common / shared secret.
+To brute force, an attacker has to figure out how many times we "jumped"
+on the elliptical curve. The number of hops is the secret d, the private key.
 */
 func (d *Device) Commit_exchange(mac2 string) {
 	po := get_Point(d.Mac_address, mac2, *d)
@@ -152,9 +152,9 @@ recalc:
 
 	scalar := mod((private + mask), d.Curve.q)
 
-	/*Se scalare è minore di due, private e mask DEVONO essere buttati via e rigenerati.
-	  Gli elementi vengono generati, la maschera non è più necessaria e DEVE essere
-	  immediatamente distrutto.*/
+	/*If scale is less than two, private and mask MUST be thrown away and regenerated.
+	The elements are generated, the mask is no longer needed and MUST be
+	immediately destroyed.*/
 	if scalar < 2 {
 		goto recalc
 	}
@@ -169,11 +169,11 @@ recalc:
 }
 
 /*
-Funzione che calcola un token a partire da dati ben noti come scalar element e la chiave privata.
-Il token è una chiave sha256 generata a partire dalla chiave privata generata attraverso operazioni di
-moltiplicazione e somma sulle curve ellittiche che ci generano un punto valido, scalar e element dei due device che 
-instaurano la connessione e il mac address del dispositivo.
-Questo token verrà poi scambiato tra i device per il calcolo effettivo di una chiave condivisa.
+Function that calculates a token starting from well-known data such as the scalar element and the private key.
+The token is a sha256 key generated from the private key generated through
+multiplication and sum on the elliptic curves that generate us a valid point, scalar and element of the two devices that
+establish the connection and the mac address of the device.
+This token will then be exchanged between devices for the actual calculation of a shared key.
 */
 func (d *Device) Shared_secret(other_scalar int, other_element Point, other_mac string) []byte {
 
@@ -205,17 +205,16 @@ func (d *Device) Shared_secret(other_scalar int, other_element Point, other_mac 
 }
 
 /*
-Nello scambio di conferma, entrambe le parti confermano di aver derivato il
-stesso segreto, e quindi sono in possesso della stessa password.
-I due peer si scambiano queste conferme e verificano la correttezza della conferma dell'altro peer che ricevono. Se la 
-conferma dell'altro peer è valida, l'autenticazione ha esito positivo; se la 
-conferma dell'altro peer non è valida, l'autenticazione non riesce. 
-Se l'autenticazione fallisce, tutto lo stato effimero creato come parte della
-particolare esecuzione dello scambio Dragonfly DEVE essere irrimediabilmente distrutto. 
-Se l'autenticazione non fallisce, mk può essere esportato come
-chiave autenticata e segreta che può essere utilizzata da un altro protocollo, ad esempio IPsec, per proteggere altri dati
-
-Pairwise Master Key (PMK) dove PMK = H(k | scal(AP1) + scal(AP2) mod q)
+In the confirm exchange, both parties confirm that they have derived the
+same secret, and therefore have the same password.
+The two peers exchange these confirmations and verify the correctness of the other peer's confirmation they receive. If the
+confirmation of the other peer is valid, authentication is successful; if the
+confirmation from the other peer is invalid, authentication fails.
+If authentication fails, all ephemeral state created as part of the
+particular execution of the Dragonfly exchange MUST be irreparably destroyed.
+If authentication fails, mk can be exported as
+authenticated and secret key that can be used by another protocol, such as IPsec, to protect other data
+Pairwise Master Key (PMK) where PMK = H (k | scal (AP1) + scal (AP2) mod q)
 */
 func (d *Device) Confirm_exchange(token_rcv []byte) bool {
 
@@ -244,14 +243,14 @@ func (d *Device) Confirm_exchange(token_rcv []byte) bool {
 }
 
 /*
-Equazione della curva ellittica
+Equation of the elliptic curve
 */
 func curve_equation(x int, c curve) int {
 	return mod((pow(x, 3) + (c.a * x) + c.b), c.p)
 }
 
 /*
-Punto inverso -P del punto P con elliptic curve y^2 = x^3 + ax + b.
+Inverse point -P of point P with elliptic curves y ^ 2 = x ^ 3 + ax + b.
 */
 func inverse_Point(po Point, p int) Point {
 	if is_origin_Point(po) {
@@ -265,7 +264,7 @@ func inverse_Point(po Point, p int) Point {
 }
 
 /*
-Funzione che verifica se 2 punti sono uguali
+Function that checks if 2 points are equal
 */
 func equal_Points(p1, p2 Point) bool {
 	if (p1.X == p2.X) && (p1.Y == p2.Y) {
@@ -276,10 +275,10 @@ func equal_Points(p1, p2 Point) bool {
 }
 
 /*
-Determina se abbiamo una rappresentazione valida di un punto
-sulla nostra curva ellittica.
-Assumiamo che le coordinate x,y sono sempre ridotti modulo p,
-in modo da poter confrontare piu semplicemente due punti (==).
+Determine if we have a valid representation of a point
+on our elliptical curve.
+We assume that the coordinates x, y are always reduced modulo p,
+so you can more easily compare two points (==).
 */
 func valid_Point(po Point, c curve) bool {
 	if is_origin_Point(po) {
@@ -299,8 +298,10 @@ func orderPoint(p1, p2 Point) (Point, Point) {
 }
 
 /*
-Funzione che segue la regola della somma descritta per
-le curve ellittiche definite su numeri reali
+Function that follows the sum rule described for
+elliptic curves defined on real numbers.
+If the points are the same, use the slope of the tangent line. Otherwise, use the slope of the line
+between the two points
 */
 func sum_Points(p1, p2 Point, c curve) Point {
 	p1, p2 = orderPoint(p1, p2)
@@ -330,7 +331,8 @@ func sum_Points(p1, p2 Point, c curve) Point {
 }
 
 /*
-Funzione che calcola n^m , con n,m numeri interi
+Function that calculates n ^ m, with n, m integers
+If m is 0, return 1, otherwise return n times the result of calling pow with n and m-1.
 */
 func pow(n, m int) int {
 	if m == 0 {
@@ -344,7 +346,7 @@ func pow(n, m int) int {
 }
 
 /*
-Funzione che calcola il modulo tra due interi
+Function that calculates the modulus between two integers
 */
 func mod(a, b int) int {
 	m := a % b
@@ -358,21 +360,8 @@ func mod(a, b int) int {
 }
 
 /*
-Calcolo dell'inverso moltipicativo
-func mol(val, p int) int {
-	for i := 1; i < p; i++ {
-		if ((val%p)*(i%p))%p == 1 {
-			return i
-		}
-	}
-
-	return -1
-}
-*/
-
-/*
-Calcolo dell'inverso moltipicativo usando
-l'algoritmo di Euclide esteso
+Calculating the multiplicative inverse using
+the extended Euclid algorithm
 */
 func inverse_mol(val int, p int) int {
 	_, x, _ := ext_euclide(val, p)
@@ -380,7 +369,7 @@ func inverse_mol(val int, p int) int {
 }
 
 /*
-Algoritmo di Euclide esteso
+Extended Euclid's algorithm
 https://en.wikibooks.org/wiki/Algorithm_Implementation/Mathematics/Extended_Euclidean_algorithm
 Ritorna (g, x, y) t.c. a*x + b*y = g = gcd(x, y)
 */
@@ -394,7 +383,8 @@ func ext_euclide(a int, b int) (int, int, int) {
 }
 
 /*
-Funzione che verifica se un punto p è il punto origine (0,0)
+Function that checks if a point p is the origin point (0,0)
+If the X and Y coordinates of the Point are both 0, return true, otherwise return false.
 */
 func is_origin_Point(p Point) bool {
 	if p.X == 0 && p.Y == 0 {
@@ -405,6 +395,7 @@ func is_origin_Point(p Point) bool {
 
 /*
 Algorithm for Point Multiplication
+The function takes a scalar and a point on a curve and returns the scalar multiple of the point
 https://en.wikipedia.org/wiki/Elliptic_curve_Point_multiplication
 */
 func op_scalar(scalar int, po Point, c curve) Point {
@@ -422,6 +413,7 @@ func op_scalar(scalar int, po Point, c curve) Point {
 
 /*
 Tonelli–Shanks algorithm
+We're trying to find the square root of a number modulo a prime number
 https://en.wikipedia.org/wiki/Tonelli%E2%80%93Shanks_algorithm
 */
 func tonelli_shanks(val int, p int) int {
