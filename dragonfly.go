@@ -60,7 +60,7 @@ func P256() curve {
 }
 
 /*
-Ordinamento dei mac address
+Ordered mac address
 */
 func ordermac(m1 string, m2 string) string {
 	if m1 > m2 {
