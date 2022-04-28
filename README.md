@@ -1,3 +1,5 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/licitrasimone/DragonflyExchange.svg)](https://pkg.go.dev/github.com/licitrasimone/DragonflyExchange)
+
 # DragonflyExchange
 implementation of Dragonfly Exchange using ECC
 
