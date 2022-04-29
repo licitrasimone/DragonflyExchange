@@ -1,4 +1,4 @@
-module dragonflyexchange
+module ecc-dragonfly
 
 go 1.16
 
